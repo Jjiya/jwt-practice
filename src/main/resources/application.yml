@@ -1,0 +1,29 @@
+spring:
+  h2:
+    console:
+      enabled: true
+  datasource:
+    url: jdbc:h2:tcp://localhost/~/testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+    # adding code for running data.sql because spring boot version has been upgraded
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: always
+      #END adding code
+jwt:
+  header: Authoriztion
+  secret: dG9rZW4tZm9yLWp3dC1wcmFjdGljZS1pbi1Ob3YtMjAyMg==
+  token-validity-in-seconds: 86400
