@@ -8,29 +8,30 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.filter.CorsFilter;
 
-@EnableWebSecurity  // <<기본적인 web 보안 활성화
-@EnableGlobalMethodSecurity(prePostEnabled = true)  // @PreAuthorize annotation을 method 단위로 추가하기 위함
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class SecurityConfig {
   private final TokenProvider tokenProvider;
-  //  private final CorsFilter corsFilter;
+  private final CorsFilter corsFilter;
   private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
   private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
   public SecurityConfig(
       TokenProvider tokenProvider,
-//      CorsFilter corsFilter,
+      CorsFilter corsFilter,
       JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
       JwtAccessDeniedHandler jwtAccessDeniedHandler
   ) {
     this.tokenProvider = tokenProvider;
-//    this.corsFilter = corsFilter;
+    this.corsFilter = corsFilter;
     this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
   }
@@ -53,9 +54,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         // token을 사용하는 방식이기 때문에 csrf를 disable합니다.
         .csrf().disable()
 
-//        .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
 
-//        custom exception handler 추가
         .exceptionHandling()
         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
         .accessDeniedHandler(jwtAccessDeniedHandler)
@@ -71,7 +71,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .sessionManagement()
         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
-//        token이 없어도 api 요청을 할 수 있는 url
         .and()
         .authorizeRequests()
         .antMatchers("/api/hello").permitAll()
@@ -84,12 +83,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .apply(new JwtSecurityConfig(tokenProvider));
 
     return httpSecurity.build();
-  }
-
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
-    http.authorizeRequests()  //httpServletRequest를 사용하는 요청들에 대한 접근 제한 설정
-        .antMatchers("/api/hello").permitAll()  // 인증 없이 접근 가능할 경로 설정
-        .anyRequest().authenticated();  //나머지 요청은 인증을 받아야함을 의미
   }
 }
